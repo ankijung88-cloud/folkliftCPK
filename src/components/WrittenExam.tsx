@@ -74,7 +74,6 @@ export const WrittenExam: React.FC<WrittenExamProps> = ({
     const result: WrittenExamResult = {
       id: `written-${Date.now()}`,
       examType,
-      examinee: { date: '', department: '', rank: '', name: '', employeeId: '' },
       score: graded.score,
       totalScore: graded.totalScore,
       passed: graded.passed,

@@ -1,13 +1,5 @@
 export type ExamType = 'A' | 'B';
 
-export interface ExamineeInfo {
-  date: string;
-  department: string;
-  rank: string;
-  name: string;
-  employeeId: string;
-}
-
 export interface MultipleChoiceQuestion {
   id: number;
   type: 'choice';
@@ -35,7 +27,6 @@ export type WrittenQuestion = MultipleChoiceQuestion | ShortAnswerQuestion;
 export interface WrittenExamResult {
   id: string;
   examType: ExamType;
-  examinee: ExamineeInfo;
   score: number;
   totalScore: number;
   passed: boolean; // >= 90
@@ -63,7 +54,6 @@ export interface PracticalItemScore {
 
 export interface PracticalExamResult {
   id: string;
-  examinee: ExamineeInfo;
   totalScore: number;
   passed: boolean; // >= 90
   itemScores: Record<string, PracticalItemScore>;

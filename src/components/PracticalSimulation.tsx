@@ -48,7 +48,6 @@ export const PracticalSimulation: React.FC<PracticalSimulationProps> = ({
       const passed = totalScore >= PASSING_SCORE;
       const result: PracticalExamResult = {
         id: `practical-${Date.now()}`,
-        examinee: { date: '', department: '', rank: '', name: '', employeeId: '' },
         totalScore,
         passed,
         itemScores: merged,
