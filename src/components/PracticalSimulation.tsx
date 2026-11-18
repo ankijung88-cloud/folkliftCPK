@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Award, AlertTriangle, RotateCcw, ClipboardList } from 'lucide-react';
-import type { ExamineeInfo, PracticalExamResult, PracticalItemScore } from '../types';
+import type { PracticalExamResult, PracticalItemScore } from '../types';
 import { PRACTICAL_CHECKLIST, PASSING_SCORE } from '../data/practicalChecklist';
 import { savePracticalHistory } from '../utils/grading';
 import { Stage1Attitude } from './practical/Stage1Attitude';
@@ -12,7 +12,6 @@ import { Stage6Dolly } from './practical/Stage6Dolly';
 import { Stage7Emergency } from './practical/Stage7Emergency';
 
 interface PracticalSimulationProps {
-  examinee: ExamineeInfo;
   onExit: () => void;
   onComplete: (result: PracticalExamResult) => void;
 }
@@ -28,7 +27,6 @@ const STAGE_TITLES = [
 ];
 
 export const PracticalSimulation: React.FC<PracticalSimulationProps> = ({
-  examinee,
   onExit,
   onComplete,
 }) => {
@@ -50,7 +48,7 @@ export const PracticalSimulation: React.FC<PracticalSimulationProps> = ({
       const passed = totalScore >= PASSING_SCORE;
       const result: PracticalExamResult = {
         id: `practical-${Date.now()}`,
-        examinee,
+        examinee: { date: '', department: '', rank: '', name: '', employeeId: '' },
         totalScore,
         passed,
         itemScores: merged,
@@ -149,9 +147,6 @@ export const PracticalSimulation: React.FC<PracticalSimulationProps> = ({
               <ClipboardList className="w-5 h-5 text-indigo-600" />
               소형운전업무실기평가 Check List 성적표
             </h3>
-            <span className="text-xs font-semibold text-slate-600">
-              응시자: {examinee.name || '미입력'} · {examinee.date}
-            </span>
           </div>
 
           <div className="overflow-x-auto">

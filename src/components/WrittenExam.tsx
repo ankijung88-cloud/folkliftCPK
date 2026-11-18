@@ -11,13 +11,12 @@ import {
   ClipboardCheck,
   Filter,
 } from 'lucide-react';
-import type { ExamType, ExamineeInfo, WrittenExamResult, WrittenQuestion } from '../types';
+import type { ExamType, WrittenExamResult, WrittenQuestion } from '../types';
 import { EXAM_A_QUESTIONS, EXAM_B_QUESTIONS } from '../data/writtenQuestions';
 import { gradeWrittenExam, isQuestionCorrect, saveWrittenHistory } from '../utils/grading';
 
 interface WrittenExamProps {
   examType: ExamType;
-  examinee: ExamineeInfo;
   onExit: () => void;
   onComplete: (result: WrittenExamResult) => void;
 }
@@ -26,7 +25,6 @@ const CIRCLED_NUMS = ['①', '②', '③', '④'] as const;
 
 export const WrittenExam: React.FC<WrittenExamProps> = ({
   examType,
-  examinee,
   onExit,
   onComplete,
 }) => {
@@ -76,7 +74,7 @@ export const WrittenExam: React.FC<WrittenExamProps> = ({
     const result: WrittenExamResult = {
       id: `written-${Date.now()}`,
       examType,
-      examinee,
+      examinee: { date: '', department: '', rank: '', name: '', employeeId: '' },
       score: graded.score,
       totalScore: graded.totalScore,
       passed: graded.passed,
@@ -188,10 +186,6 @@ export const WrittenExam: React.FC<WrittenExamProps> = ({
                     ? '축하합니다! 합격 기준(90점 이상)을 통과했습니다.'
                     : '아쉽습니다. 합격 기준(90점 이상)에 미달하여 불합격입니다.'}
                 </h2>
-                <p className="text-sm text-slate-600 mt-1">
-                  응시자: {examinee.name || '미입력'} ({examinee.department || '소속 미입력'} ·{' '}
-                  {examinee.rank || '직급 미입력'}) | 평가일자: {examinee.date}
-                </p>
               </div>
             </div>
 
@@ -351,11 +345,12 @@ export const WrittenExam: React.FC<WrittenExamProps> = ({
   const hasAnsweredCurrent =
     currentQuestion.type === 'choice'
       ? typeof userAns === 'number'
-      : Array.isArray(userAns) && userAns.some((v) => v.trim().length > 0);
+      : Array.isArray(userAns) &&
+        currentQuestion.acceptedAnswers.every((_, idx) => (userAns[idx] ?? '').trim().length > 0);
   const isCurrentCorrect = isQuestionCorrect(currentQuestion, userAns);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6 space-y-5">
+    <div className="max-w-3xl mx-auto px-4 py-6 space-y-5">
       {/* 상단 바 */}
       <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
         <div className="flex items-center gap-3">
@@ -368,7 +363,7 @@ export const WrittenExam: React.FC<WrittenExamProps> = ({
           </button>
           <div>
             <h1 className="text-lg font-extrabold text-slate-900">
-              소형운전업무 필기평가 {examType}형 답안지
+              소형운전업무 필기평가 {examType}형
               {retryWrongOnly && (
                 <span className="ml-2 text-xs px-2 py-0.5 rounded bg-amber-100 text-amber-800">
                   오답 재응시
@@ -376,8 +371,7 @@ export const WrittenExam: React.FC<WrittenExamProps> = ({
               )}
             </h1>
             <p className="text-xs text-slate-500">
-              합격 기준: 90점 이상 (총 {activeQuestions.length}문항 · 문항당{' '}
-              {Math.round(100 / activeQuestions.length)}점)
+              총 {activeQuestions.length}문항 · 문항당 {Math.round(100 / activeQuestions.length)}점
             </p>
           </div>
         </div>
@@ -395,44 +389,13 @@ export const WrittenExam: React.FC<WrittenExamProps> = ({
             {studyMode ? '즉시 해설 ON' : '즉시 해설 OFF'}
           </button>
           <div className="text-sm font-bold text-slate-700">
-            진행: <span className="text-indigo-600">{answeredCount}</span> / {activeQuestions.length}
-          </div>
-          <button
-            onClick={handleSubmit}
-            className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold shadow-sm transition"
-          >
-            답안 제출 및 채점
-          </button>
-        </div>
-      </div>
-
-      {/* 실제 답안지 응시자 정보 바 */}
-      <div className="bg-white rounded-xl border border-slate-300 overflow-hidden text-xs">
-        <div className="grid grid-cols-3 md:grid-cols-6 divide-x divide-y md:divide-y-0 divide-slate-300 text-center">
-          <div className="p-2 bg-slate-100 font-bold text-slate-700">
-            평가일자: <span className="font-normal text-slate-900">{examinee.date}</span>
-          </div>
-          <div className="p-2 bg-slate-50 font-bold text-slate-700">
-            소속: <span className="font-normal text-slate-900">{examinee.department || '-'}</span>
-          </div>
-          <div className="p-2 bg-slate-50 font-bold text-slate-700">
-            직급: <span className="font-normal text-slate-900">{examinee.rank || '-'}</span>
-          </div>
-          <div className="p-2 bg-slate-50 font-bold text-slate-700">
-            성명: <span className="font-normal text-slate-900">{examinee.name || '응시자'}</span>
-          </div>
-          <div className="p-2 bg-slate-50 font-bold text-slate-700">
-            사번: <span className="font-normal text-slate-900">{examinee.employeeId || '-'}</span>
-          </div>
-          <div className="p-2 bg-slate-100 font-bold text-slate-700">
-            합격기준: <span className="text-emerald-700">90점 이상</span>
+            진행: <span className="text-indigo-600">{currentIdx + 1}</span> / {activeQuestions.length}
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* 좌측: 문제 풀이 영역 */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between min-h-105">
+      {/* 문제 풀이 영역 */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between min-h-105">
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <span className="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-bold">
@@ -534,77 +497,39 @@ export const WrittenExam: React.FC<WrittenExamProps> = ({
             )}
           </div>
 
-          <div className="flex items-center justify-between pt-6 mt-6 border-t border-slate-100">
-            <button
-              onClick={() => setCurrentIdx((i) => Math.max(0, i - 1))}
-              disabled={currentIdx === 0}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-slate-300 text-sm font-semibold text-slate-700 disabled:opacity-40 hover:bg-slate-50"
-            >
-              <ArrowLeft className="w-4 h-4" /> 이전 문항
-            </button>
-            {currentIdx < activeQuestions.length - 1 ? (
-              <button
-                onClick={() => setCurrentIdx((i) => Math.min(activeQuestions.length - 1, i + 1))}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800"
-              >
-                다음 문항 <ArrowRight className="w-4 h-4" />
-              </button>
-            ) : (
-              <button
-                onClick={handleSubmit}
-                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700"
-              >
-                채점하기 <CheckCircle2 className="w-4 h-4" />
-              </button>
+          <div className="pt-6 mt-6 border-t border-slate-100 space-y-2">
+            {!hasAnsweredCurrent && (
+              <p className="text-xs font-medium text-amber-600 text-right">
+                문제를 풀어야 다음 문항으로 넘어갈 수 있습니다.
+              </p>
             )}
-          </div>
-        </div>
-
-        {/* 우측: OMR 네비게이터 */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 h-fit">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-bold text-sm text-slate-800">문항 빠른 이동 (OMR)</h3>
-            <span className="text-xs text-slate-500">
-              {answeredCount}/{activeQuestions.length} 완료
-            </span>
-          </div>
-          <div className="grid grid-cols-5 gap-2">
-            {activeQuestions.map((q, idx) => {
-              const a = answers[q.id];
-              const filled =
-                q.type === 'choice'
-                  ? typeof a === 'number'
-                  : Array.isArray(a) && a.some((v) => v.trim().length > 0);
-              const isActive = idx === currentIdx;
-              return (
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => setCurrentIdx((i) => Math.max(0, i - 1))}
+                disabled={currentIdx === 0}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-slate-300 text-sm font-semibold text-slate-700 disabled:opacity-40 hover:bg-slate-50"
+              >
+                <ArrowLeft className="w-4 h-4" /> 이전 문항
+              </button>
+              {currentIdx < activeQuestions.length - 1 ? (
                 <button
-                  key={q.id}
-                  onClick={() => setCurrentIdx(idx)}
-                  className={`py-2 rounded-lg text-xs font-bold transition border ${
-                    isActive
-                      ? 'border-indigo-600 bg-indigo-600 text-white shadow-sm'
-                      : filled
-                      ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
-                      : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
-                  }`}
+                  onClick={() => setCurrentIdx((i) => Math.min(activeQuestions.length - 1, i + 1))}
+                  disabled={!hasAnsweredCurrent}
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  {q.id}
+                  다음 문항 <ArrowRight className="w-4 h-4" />
                 </button>
-              );
-            })}
+              ) : (
+                <button
+                  onClick={handleSubmit}
+                  disabled={!hasAnsweredCurrent}
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  채점하기 <CheckCircle2 className="w-4 h-4" />
+                </button>
+              )}
+            </div>
           </div>
-          <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-            <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded bg-emerald-200 inline-block" /> 입력완료
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded bg-slate-200 inline-block" /> 미입력
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded bg-indigo-600 inline-block" /> 현재문항
-            </span>
-          </div>
-        </div>
       </div>
     </div>
   );
